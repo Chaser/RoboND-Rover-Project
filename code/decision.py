@@ -9,6 +9,22 @@ def is_rover_stuck(Rover):
 
     return False
 
+def rover_issue_correction(Rover):
+    Rover.throttle = 0
+    # Release the brake to allow turning
+    Rover.brake = 0
+    # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
+    Rover.steer = -15 # Could be more clever here about which way to turn
+
+def rover_prepare_for_driving(Rover):
+    # Set throttle back to stored value
+    Rover.throttle = Rover.throttle_set
+    # Release the brake
+    Rover.brake = 0
+    # Set steering to average angle clipped to the range +/- 15
+    Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
+    Rover.mode = 'forward'
+
 # This is where you can build a decision tree for determining throttle, brake and steer 
 # commands based on the output of the perception_step() function
 def decision_step(Rover):
@@ -53,23 +69,12 @@ def decision_step(Rover):
         ## Handle conditions when Rover is stuck/Jammed.
         elif Rover.mode == 'stuck':
             if abs(Rover.yaw - Rover.stuck_yaw_sample) >= Rover.stuck_yaw_tolerance:
-                # Set throttle back to stored value
-                Rover.throttle = Rover.throttle_set
-                # Release the brake
-                Rover.brake = 0
-                # Set steering to average angle clipped to the range +/- 15
-                Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
+                rover_prepare_for_driving(Rover)
                 Rover.stuck_time = Rover.total_time
                 Rover.stuck_yaw_sample = Rover.yaw
-                Rover.mode = 'forward'
             # Now we're stopped and we have vision data to see if there's a path forward
             else:
-                Rover.throttle = 0
-                # Release the brake to allow turning
-                Rover.brake = 0
-                # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
-                # Since hugging left wall steering should be to the right:
-                Rover.steer = -15
+                rover_issue_correction(Rover)
 
         # If we're already in "stop" mode then make different decisions
         elif Rover.mode == 'stop':
@@ -82,22 +87,11 @@ def decision_step(Rover):
             elif Rover.vel <= 0.2:
                 # Now we're stopped and we have vision data to see if there's a path forward
                 if len(Rover.nav_angles) < Rover.go_forward:
-                    Rover.throttle = 0
-                    # Release the brake to allow turning
-                    Rover.brake = 0
-                    # Turn range is +/- 15 degrees, when stopped the next line will induce 4-wheel turning
-                    Rover.steer = -15 # Could be more clever here about which way to turn
+                    rover_issue_correction(Rover)
                 # If we're stopped but see sufficient navigable terrain in front then go!
                 if len(Rover.nav_angles) >= Rover.go_forward:
-                    # Set throttle back to stored value
-                    Rover.throttle = Rover.throttle_set
-                    # Release the brake
-                    Rover.brake = 0
-                    # Set steer to mean angle
-                    Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
-                    Rover.mode = 'forward'
+                    rover_prepare_for_driving(Rover)
             
-
     # Just to make the rover do something 
     # even if no modifications have been made to the code
     else:
