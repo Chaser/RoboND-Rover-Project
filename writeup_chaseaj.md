@@ -293,6 +293,32 @@ if (Rover.roll <= roll_tolerance or (360 - Rover.roll <= roll_tolerance)) and (R
     Rover.worldmap[rock_y_world, rock_x_world] += 255
 ```
 
-Such a change results in a signifcant improvement to the mapping quality, with ~44% of the environment mapped @ 71% fidelity (image below)
+Such a change results in a signifcant improvement to the mapping quality, with ~45% of the environment mapped @ 72% fidelity (image below)
 
 ![alt text][image12]
+
+#### 2. Decision Step
+
+The decision step of the Rover is handled in the `decision_step()` function which Udacity provided boilerplate code (`decision.py`) for. The boilerplate code does the following.
+
+At the highest level it requires `Rover.nav_angles` which was acquired and calculated in `perception_step()` final stage. With this requirement the two modes of the rover are examined and set `forward/stop`.
+
+**Forward Mode**
+* If navigable terrain is available `len(Rover.nav_angles) >= Rover.stop_forward` and velocity is less than `2m/s` continue the acceletare @ 0.20m/s^2.
+* If navigable terrain is available `len(Rover.nav_angles) >= Rover.stop_forward` and velocity at the max of `2m/s` then the throttle is set to 0.
+
+In any of the above cases the average angle is determined and clipped between -15/15 degrees.
+
+```python
+ # Set steering to average angle clipped to the range +/- 15
+Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
+```
+
+* If navigable terrain **is not** available `len(Rover.nav_angles) < Rover.stop_forward` the throttle is reduced and the brake is applied and the Rover mode changed to `stop`
+
+**Stop Mode**
+* If still moving `Rover.vel > 0.2` then continue to brake to stop the rover
+* If the Rover has stopped `Rover.vel <= 0.2` and there **is not** sufficent naviable terrain in-front `len(Rover.nav_angles) < Rover.go_forward` then turn the Rover until there is.
+* If the Rover has stopped `Rover.vel <= 0.2` and there is sufficient navigable terrain in-front `len(Rover.nav_angles) >= Rover.go_forward` then change to `forward` mode.
+
+
