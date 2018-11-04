@@ -23,6 +23,7 @@ This project is inspired by the [NASA sample return challenge](https://www.nasa.
 [image9]: ./report_data/world_map_transform_example.png
 [image10]: ./report_data/process_image_result.png
 [image11]: ./report_data/autonomous_initial_perception.png
+[image12]: ./report_data/autonmous_perception_fidelity_improvement_1.png
 
 #### Perception through image analysis
 
@@ -263,6 +264,35 @@ An example of the **complete** `process_image` process can be seen below.
 The rover sim resolution was **1024x768** with graphics quality set to **fantastic**.
 
 ##### Results
+
 The initial results were signifcantly poor with ~48% of environment mapped with ~51% fidelity.
 
 ![alt text][image11]
+
+#### 1. Preception Step
+
+##### Fidelity Improvements
+
+As described above the initial results are not sufficient. The fidelity result needs to be greater than >= 60% to be considered acceptable. The project requirements mentioned that the transform is only valid when the roll/pitch angles are near zero. If the samples are evaluated outside of this range then it will affect the fidelity. Therefore the original transform evaluation of
+
+```python
+Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 255
+Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 255
+Rover.worldmap[rock_y_world, rock_x_world] += 255
+```
+
+was updated to evaluate the roll/pitch angles:
+
+```python
+# Follow recommendation of Optimizing Map Fidelity due to Roll/Pitch conditions.
+roll_tolerance = 1      # Degrees 0-360
+pitch_tolerance = 1     # Degrees 0-360
+if (Rover.roll <= roll_tolerance or (360 - Rover.roll <= roll_tolerance)) and (Rover.pitch <= pitch_tolerance or (360 - Rover.pitch <= pitch_tolerance)):
+    Rover.worldmap[obstacle_y_world, obstacle_x_world, 0] += 255
+    Rover.worldmap[navigable_y_world, navigable_x_world, 2] += 255
+    Rover.worldmap[rock_y_world, rock_x_world] += 255
+```
+
+Such a change results in a signifcant improvement to the mapping quality, with ~44% of the environment mapped @ 71% fidelity (image below)
+
+![alt text][image12]
