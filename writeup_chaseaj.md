@@ -22,6 +22,7 @@ This project is inspired by the [NASA sample return challenge](https://www.nasa.
 [image8]: ./report_data/map_transform_example.png
 [image9]: ./report_data/world_map_transform_example.png
 [image10]: ./report_data/process_image_result.png
+[image11]: ./report_data/autonomous_initial_perception.png
 
 #### Perception through image analysis
 
@@ -246,6 +247,22 @@ An example of the **complete** `process_image` process can be seen below.
 ![alt text][image10]
 
 
+### Autonomous Navigation and Mapping
 
+#### Initial Process Image Evaluation
 
+##### Procedure
 
+1. Modify `perception.py` to execute steps defined in Jupiter notebook in `process_image(img)`
+2. Start the simulator (Roversim) and select Autonmous Mode
+3. Run `python drive_rover.py`
+4. Evaluate preception algorithm
+
+##### Settings
+
+The rover sim resolution was **1024x768** with graphics quality set to **fantastic**.
+
+##### Results
+The initial results were signifcantly poor with ~48% of environment mapped with ~51% fidelity.
+
+![alt text][image11]
