@@ -21,6 +21,7 @@ This project is inspired by the [NASA sample return challenge](https://www.nasa.
 [image7]: ./report_data/rock_color_threshold_example.jpg
 [image8]: ./report_data/map_transform_example.png
 [image9]: ./report_data/world_map_transform_example.png
+[image10]: ./report_data/process_image_result.png
 
 #### Perception through image analysis
 
@@ -184,7 +185,65 @@ Once the captured image is transformed its important to store this data on the w
 
 #### Mapping
 
+The image analysis steps can be combined and then utlized to provide a complete `perception` model to aid in the overall decision making. This was done in the `process_image(img)` function which consists of 7 discrete steps.
 
+Step 1, consists of defining the source and destination points for the perspective transform.
+
+```python
+dst_size = 5
+rover_fov_offset = 5
+destination = np.float32([[img.shape[1]/2 - dst_size, img.shape[0] - rover_fov_offset],
+                [img.shape[1]/2 + dst_size, img.shape[0] - rover_fov_offset],
+                [img.shape[1]/2 + dst_size, img.shape[0] - 2*dst_size - rover_fov_offset], 
+                [img.shape[1]/2 - dst_size, img.shape[0] - 2*dst_size - rover_fov_offset],
+                ])
+```
+
+Next (Step 2), the perspective transform is applied to the image to get the top-down view.
+
+```python
+warped = perspect_transform(img, source, destination)
+```
+
+With the top-down view available from the `perspective_transform` the color threshold is applied (Step 3) to identify naviable terrain, obstacles and rock samples.
+
+```python
+navigable_threshold = color_thresh(warped)
+obstacle_threshold = np.absolute(np.float32(navigable_threshold) - 1)
+rock_threshold = rock_thresh(warped)
+```
+
+The image co-ordinates are then converted to rover coordinates using a function `rover_coords`
+
+```python
+navigable_xpix, navigable_ypix = rover_coords(navigable_threshold)
+obstacle_xpix, obstacle_ypix = rover_coords(obstacle_threshold)
+rock_xpix, rock_ypix = rover_coords(rock_threshold)
+```
+
+With the rover coordinates now available step 5 converts these values to world coords
+
+```python
+ # Acquire Navigable world data
+navigable_x_world, navigable_y_world = pix_to_world(navigable_xpix, navigable_ypix, rover_xpos, rover_ypos,rover_yaw, data.worldmap.shape[0], scale)
+
+# Acquire Obstacle world data
+obstacle_x_world, obstacle_y_world = pix_to_world(obstacle_xpix, obstacle_ypix, rover_xpos, rover_ypos, rover_yaw,data.worldmap.shape[0], scale)
+
+# Acquire Rock world data
+rock_x_world, rock_y_world = pix_to_world(navigable_xpix, navigable_ypix, rover_xpos, rover_ypos, rover_yaw,data.worldmap.shape[0], scale)
+```
+
+With world-cordinates known for the particular image the image can be added to the `set` or bucket of current images captured and process. This is done in Step 6 below.
+
+```python
+data.worldmap[obstacle_y_world, obstacle_x_world, 0] += 255
+data.worldmap[rock_y_world, rock_x_world, 1] += 255  
+data.worldmap[navigable_y_world, navigable_x_world, 2] += 255
+```
+
+An example of the **complete** `process_image` process can be seen below.
+![alt text][image10]
 
 
 
