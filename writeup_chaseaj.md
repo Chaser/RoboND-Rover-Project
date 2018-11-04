@@ -248,6 +248,9 @@ data.worldmap[navigable_y_world, navigable_x_world, 2] += 255
 An example of the **complete** `process_image` process can be seen below.
 ![alt text][image10]
 
+#### Results
+The results from the `process_image` algorithm over the test sample data can be found [here](/output/test_mapping.mp4)
+
 
 ### Autonomous Navigation and Mapping
 
