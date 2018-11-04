@@ -76,7 +76,14 @@ class RoverState():
         self.samples_collected = 0 # To count the number of samples collected
         self.near_sample = 0 # Will be set to telemetry value data["near_sample"]
         self.picking_up = 0 # Will be set to telemetry value data["picking_up"]
-        self.send_pickup = False # Set to True to trigger rock pickup
+        self.send_pickup = False        # Set to True to trigger rock pickup
+        self.stuck = False              # Indicate the Rover is stuck
+        self.stuck_time = 0.0
+        self.stuck_wait_time = 3.0      # Number of seconds to wait before executing sticky
+        self.stuck_ground_speed = 0.2
+        self.stuck_yaw_tolerance = 10   # Number of deg tolerance before sticky routine kicks in  
+        self.stuck_yaw_sample = None
+        
 # Initialize our rover 
 Rover = RoverState()
 
