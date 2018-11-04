@@ -24,6 +24,7 @@ This project is inspired by the [NASA sample return challenge](https://www.nasa.
 [image10]: ./report_data/process_image_result.png
 [image11]: ./report_data/autonomous_initial_perception.png
 [image12]: ./report_data/autonmous_perception_fidelity_improvement_1.png
+[image13]: ./report_data/autonomous_search_and_sample_final_result.png
 
 #### Perception through image analysis
 
@@ -321,4 +322,19 @@ Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
 * If the Rover has stopped `Rover.vel <= 0.2` and there **is not** sufficent naviable terrain in-front `len(Rover.nav_angles) < Rover.go_forward` then turn the Rover until there is.
 * If the Rover has stopped `Rover.vel <= 0.2` and there is sufficient navigable terrain in-front `len(Rover.nav_angles) >= Rover.go_forward` then change to `forward` mode.
 
+##### Navigation Improvements
+An evidence problem with the rover `decision` process is when nagivable terrain is available but there is an object that could cause the rover to become stuck. To alleviate this condition an extra check was added to the forward mode, which checks to see if velocity is <= `0.2m/s` and >= `0.2m/s`. If this condition is `true` for longer than `Rover.stuck_wait_time` which is set to `3 seconds` then the Rovers mode transitions from `forward` -> `stuck`. The transition samples the current running time and the yaw angle of the rover.
 
+**Stuck Mode** 
+* If the current yaw `Rover.yaw` minus (-) the yaw angle when stuck `Rover.stuck_yaw_sample` is **greater** than yaw tolerance of 10 degrees `Rover.stuck_yaw_tolerance` then change from `stuck` mode to forward again
+* If the current yaw `Rover.yaw` minus (-) the yaw angle when stuck `Rover.stuck_yaw_sample` is **less** the rover is still considered stuck and will steer towards -15 degrees to attempt to steer away from the obsticale
+
+#### Final Result
+The changes to `perception` and `decision` stages of the Rover have allowed for a higher accuracy in mapping (fidelity) and showns how decision making process can provide `more` intelligent operations as shown in the figure below.
+
+![alt text][image13]
+
+#### Ideas/Improvements
+* Include retrieving (pick up) rock samples
+* Optimizing returning over the same areas of map
+* Reduce driving sway, oscillations in movement are evident when at max velocity
